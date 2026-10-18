@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import rs.fon.registarFakulteta.dto.UniverzitetDto;
+import rs.fon.registarFakulteta.exception.ResourceNotFoundException;
 import rs.fon.registarFakulteta.mapper.UniverzitetMapper;
 import rs.fon.registarFakulteta.model.Univerzitet;
 import rs.fon.registarFakulteta.repository.UniverzitetRepository;
@@ -34,7 +35,7 @@ public class UniverzitetService {
 
     @Transactional(readOnly = true)
     public UniverzitetDto getById(Long id) {
-        Univerzitet univerzitet = univerzitetRepository.findById(id).orElseThrow(() -> new RuntimeException("Univerzitet sa id: " + id + " ne postoji"));
+        Univerzitet univerzitet = univerzitetRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Univerzitet sa id: " + id + " ne postoji"));
         return univerzitetMapper.toDto(univerzitet);
     }
 
@@ -48,7 +49,7 @@ public class UniverzitetService {
 
     @Transactional
     public UniverzitetDto update(Long id, UniverzitetDto dto) {
-        Univerzitet postojeci = univerzitetRepository.findById(id).orElseThrow(() -> new RuntimeException("Univerzitet sa id=" + id + " ne postoji"));
+        Univerzitet postojeci = univerzitetRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Univerzitet sa id: " + id + " ne postoji"));
 
         postojeci.setNaziv(dto.getNaziv());
         postojeci.setAdresa(dto.getAdresa());
@@ -64,7 +65,7 @@ public class UniverzitetService {
     @Transactional
     public void delete(Long id) {
         if(!univerzitetRepository.existsById(id)) {
-            throw new RuntimeException("Univerzitet sa id: " + id + " ne postoji");
+            throw new ResourceNotFoundException("Univerzitet sa id: " + id + " ne postoji");
         }
         univerzitetRepository.deleteById(id);
     }

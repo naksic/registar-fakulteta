@@ -14,6 +14,7 @@ import rs.fon.registarFakulteta.model.Univerzitet;
 import rs.fon.registarFakulteta.repository.FakultetRepository;
 import rs.fon.registarFakulteta.repository.UniverzitetRepository;
 import java.util.List;
+import rs.fon.registarFakulteta.exception.ResourceNotFoundException;
 
 /**
  *
@@ -37,14 +38,14 @@ public class FakultetService {
 
     @Transactional(readOnly = true)
     public FakultetDto getById(Long id) {
-        Fakultet fakultet = fakultetRepository.findById(id).orElseThrow(() -> new RuntimeException("Fakultet sa id: " + id + " ne postoji"));
+        Fakultet fakultet = fakultetRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Fakultet sa id: " + id + " ne postoji"));
         return fakultetMapper.toDto(fakultet);
     }
 
     @Transactional
     public FakultetDto create(FakultetDto dto) {
         Univerzitet univerzitet = univerzitetRepository.findById(dto.getUniverzitetId())
-                .orElseThrow(() -> new RuntimeException("Univerzitet sa id:" + dto.getUniverzitetId() + " ne postoji"));
+                .orElseThrow(() -> new ResourceNotFoundException("Univerzitet sa id:" + dto.getUniverzitetId() + " ne postoji"));
 
         Fakultet fakultet = fakultetMapper.toEntity(dto);
         fakultet.setId(null);
@@ -57,10 +58,10 @@ public class FakultetService {
     @Transactional
     public FakultetDto update(Long id, FakultetDto dto) {
         Fakultet postojeci = fakultetRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Fakultet sa id: " + id + " ne postoji"));
+                .orElseThrow(() -> new ResourceNotFoundException("Fakultet sa id: " + id + " ne postoji"));
 
         Univerzitet univerzitet = univerzitetRepository.findById(dto.getUniverzitetId())
-                .orElseThrow(() -> new RuntimeException("Univerzitet sa id: " + dto.getUniverzitetId() + " ne postoji"));
+                .orElseThrow(() -> new ResourceNotFoundException("Univerzitet sa id: " + dto.getUniverzitetId() + " ne postoji"));
 
         postojeci.setNaziv(dto.getNaziv());
         postojeci.setSkraceniNaziv(dto.getSkraceniNaziv());
@@ -81,7 +82,7 @@ public class FakultetService {
     @Transactional
     public void delete(Long id) {
         if(!fakultetRepository.existsById(id)) {
-            throw new RuntimeException("Fakultet sa id: " + id + " ne postoji");
+            throw new ResourceNotFoundException("Fakultet sa id: " + id + " ne postoji");
         }
         fakultetRepository.deleteById(id);
     }

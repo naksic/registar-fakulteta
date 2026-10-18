@@ -16,6 +16,7 @@ import rs.fon.registarFakulteta.repository.ClanUpraveRepository;
 import rs.fon.registarFakulteta.repository.LiceRepository;
 import rs.fon.registarFakulteta.repository.MandatUpraveRepository;
 import java.util.List;
+import rs.fon.registarFakulteta.exception.ResourceNotFoundException;
 
 /**
  *
@@ -41,7 +42,7 @@ public class ClanUpraveService {
     @Transactional(readOnly = true)
     public ClanUpraveDto getById(Long id) {
         ClanUprave c = clanUpraveRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Clan uprave sa id: " + id + " ne postoji"));
+                .orElseThrow(() -> new ResourceNotFoundException("Clan uprave sa id: " + id + " ne postoji"));
         return clanUpraveMapper.toDto(c);
     }
 
@@ -57,10 +58,10 @@ public class ClanUpraveService {
     @Transactional
     public ClanUpraveDto create(ClanUpraveDto dto) {
         MandatUprave mandat = mandatUpraveRepository.findById(dto.getMandatUpraveId())
-                .orElseThrow(() -> new RuntimeException("Mandat uprave sa id: " + dto.getMandatUpraveId() + " ne postoji"));
+                .orElseThrow(() -> new ResourceNotFoundException("Mandat uprave sa id: " + dto.getMandatUpraveId() + " ne postoji"));
 
         Lice lice = liceRepository.findById(dto.getLiceId())
-                .orElseThrow(() -> new RuntimeException("Lice sa id: " + dto.getLiceId() + " ne postoji"));
+                .orElseThrow(() -> new ResourceNotFoundException("Lice sa id: " + dto.getLiceId() + " ne postoji"));
 
         ClanUprave c = clanUpraveMapper.toEntity(dto);
         c.setId(null);
@@ -74,13 +75,13 @@ public class ClanUpraveService {
     @Transactional
     public ClanUpraveDto update(Long id, ClanUpraveDto dto) {
         ClanUprave postojeci = clanUpraveRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Clan uprave sa id: " + id + " ne postoji"));
+                .orElseThrow(() -> new ResourceNotFoundException("Clan uprave sa id: " + id + " ne postoji"));
 
         MandatUprave mandat = mandatUpraveRepository.findById(dto.getMandatUpraveId())
-                .orElseThrow(() -> new RuntimeException("Mandat uprave sa id: " + dto.getMandatUpraveId() + " ne postoji"));
+                .orElseThrow(() -> new ResourceNotFoundException("Mandat uprave sa id: " + dto.getMandatUpraveId() + " ne postoji"));
 
         Lice lice = liceRepository.findById(dto.getLiceId())
-                .orElseThrow(() -> new RuntimeException("Lice sa id: " + dto.getLiceId() + " ne postoji"));
+                .orElseThrow(() -> new ResourceNotFoundException("Lice sa id: " + dto.getLiceId() + " ne postoji"));
 
         postojeci.setFunkcija(dto.getFunkcija());
         postojeci.setMandatUprave(mandat);
@@ -93,7 +94,7 @@ public class ClanUpraveService {
     @Transactional
     public void delete(Long id) {
         if(!clanUpraveRepository.existsById(id)) {
-            throw new RuntimeException("Clan uprave sa id: " + id + " ne postoji");
+            throw new ResourceNotFoundException("Clan uprave sa id: " + id + " ne postoji");
         }
         clanUpraveRepository.deleteById(id);
     }

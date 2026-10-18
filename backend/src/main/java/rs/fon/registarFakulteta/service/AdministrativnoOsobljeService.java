@@ -12,6 +12,7 @@ import rs.fon.registarFakulteta.mapper.AdministrativnoOsobljeMapper;
 import rs.fon.registarFakulteta.model.AdministrativnoOsoblje;
 import rs.fon.registarFakulteta.repository.AdministrativnoOsobljeRepository;
 import java.util.List;
+import rs.fon.registarFakulteta.exception.ResourceNotFoundException;
 
 /**
  *
@@ -34,7 +35,7 @@ public class AdministrativnoOsobljeService {
     @Transactional(readOnly = true)
     public AdministrativnoOsobljeDto getById(Long id) {
         AdministrativnoOsoblje a = administrativnoOsobljeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Administrativno osoblje sa id: " + id + " ne postoji"));
+                .orElseThrow(() -> new ResourceNotFoundException("Administrativno osoblje sa id: " + id + " ne postoji"));
         return administrativnoOsobljeMapper.toDto(a);
     }
 
@@ -49,7 +50,7 @@ public class AdministrativnoOsobljeService {
     @Transactional
     public AdministrativnoOsobljeDto update(Long id, AdministrativnoOsobljeDto dto) {
         AdministrativnoOsoblje postojeci = administrativnoOsobljeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Administrativno osoblje sa id: " + id + " ne postoji"));
+                .orElseThrow(() -> new ResourceNotFoundException("Administrativno osoblje sa id: " + id + " ne postoji"));
 
         postojeci.setIme(dto.getIme());
         postojeci.setPrezime(dto.getPrezime());
@@ -66,7 +67,7 @@ public class AdministrativnoOsobljeService {
     @Transactional
     public void delete(Long id) {
         if(!administrativnoOsobljeRepository.existsById(id)) {
-            throw new RuntimeException("Administrativno osoblje sa id: " + id + " ne postoji");
+            throw new ResourceNotFoundException("Administrativno osoblje sa id: " + id + " ne postoji");
         }
         administrativnoOsobljeRepository.deleteById(id);
     }

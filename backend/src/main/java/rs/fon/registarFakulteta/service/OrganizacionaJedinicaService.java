@@ -14,6 +14,7 @@ import rs.fon.registarFakulteta.model.OrganizacionaJedinica;
 import rs.fon.registarFakulteta.repository.FakultetRepository;
 import rs.fon.registarFakulteta.repository.OrganizacionaJedinicaRepository;
 import java.util.List;
+import rs.fon.registarFakulteta.exception.ResourceNotFoundException;
 
 /**
  *
@@ -38,7 +39,7 @@ public class OrganizacionaJedinicaService {
     @Transactional(readOnly = true)
     public OrganizacionaJedinicaDto getById(Long id) {
         OrganizacionaJedinica o = organizacionaJedinicaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Organizaciona jedinica sa id: " + id + " ne postoji"));
+                .orElseThrow(() -> new ResourceNotFoundException("Organizaciona jedinica sa id: " + id + " ne postoji"));
         return organizacionaJedinicaMapper.toDto(o);
     }
 
@@ -54,7 +55,7 @@ public class OrganizacionaJedinicaService {
     @Transactional
     public OrganizacionaJedinicaDto create(OrganizacionaJedinicaDto dto) {
         Fakultet fakultet = fakultetRepository.findById(dto.getFakultetId())
-                .orElseThrow(() -> new RuntimeException("Fakultet sa id: " + dto.getFakultetId() + " ne postoji"));
+                .orElseThrow(() -> new ResourceNotFoundException("Fakultet sa id: " + dto.getFakultetId() + " ne postoji"));
 
         OrganizacionaJedinica o = organizacionaJedinicaMapper.toEntity(dto);
         o.setId(null);
@@ -67,10 +68,10 @@ public class OrganizacionaJedinicaService {
     @Transactional
     public OrganizacionaJedinicaDto update(Long id, OrganizacionaJedinicaDto dto) {
         OrganizacionaJedinica postojeca = organizacionaJedinicaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Organizaciona jedinica sa id: " + id + " ne postoji"));
+                .orElseThrow(() -> new ResourceNotFoundException("Organizaciona jedinica sa id: " + id + " ne postoji"));
 
         Fakultet fakultet = fakultetRepository.findById(dto.getFakultetId())
-                .orElseThrow(() -> new RuntimeException("Fakultet sa id: " + dto.getFakultetId() + " ne postoji"));
+                .orElseThrow(() -> new ResourceNotFoundException("Fakultet sa id: " + dto.getFakultetId() + " ne postoji"));
 
         postojeca.setNaziv(dto.getNaziv());
         postojeca.setFakultet(fakultet);
@@ -82,7 +83,7 @@ public class OrganizacionaJedinicaService {
     @Transactional
     public void delete(Long id) {
         if(!organizacionaJedinicaRepository.existsById(id)) {
-            throw new RuntimeException("Organizaciona jedinica sa id: " + id + " ne postoji");
+            throw new ResourceNotFoundException("Organizaciona jedinica sa id: " + id + " ne postoji");
         }
         organizacionaJedinicaRepository.deleteById(id);
     }

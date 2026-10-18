@@ -12,6 +12,7 @@ import rs.fon.registarFakulteta.mapper.NastavnoOsobljeMapper;
 import rs.fon.registarFakulteta.model.NastavnoOsoblje;
 import rs.fon.registarFakulteta.repository.NastavnoOsobljeRepository;
 import java.util.List;
+import rs.fon.registarFakulteta.exception.ResourceNotFoundException;
 /**
  *
  * @author Korisnik
@@ -33,7 +34,7 @@ public class NastavnoOsobljeService {
     @Transactional(readOnly = true)
     public NastavnoOsobljeDto getById(Long id) {
         NastavnoOsoblje n = nastavnoOsobljeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Nastavno osoblje sa id: " + id + " ne postoji"));
+                .orElseThrow(() -> new ResourceNotFoundException("Nastavno osoblje sa id: " + id + " ne postoji"));
         return nastavnoOsobljeMapper.toDto(n);
     }
 
@@ -48,7 +49,7 @@ public class NastavnoOsobljeService {
     @Transactional
     public NastavnoOsobljeDto update(Long id, NastavnoOsobljeDto dto) {
         NastavnoOsoblje postojeci = nastavnoOsobljeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Nastavno osoblje sa id: " + id + " ne postoji"));
+                .orElseThrow(() -> new ResourceNotFoundException("Nastavno osoblje sa id: " + id + " ne postoji"));
 
         postojeci.setIme(dto.getIme());
         postojeci.setPrezime(dto.getPrezime());
@@ -66,7 +67,7 @@ public class NastavnoOsobljeService {
     @Transactional
     public void delete(Long id) {
         if(!nastavnoOsobljeRepository.existsById(id)) {
-            throw new RuntimeException("Nastavno osoblje sa id: " + id + " ne postoji");
+            throw new ResourceNotFoundException("Nastavno osoblje sa id: " + id + " ne postoji");
         }
         nastavnoOsobljeRepository.deleteById(id);
     }

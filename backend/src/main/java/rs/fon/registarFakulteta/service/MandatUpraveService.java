@@ -14,6 +14,8 @@ import rs.fon.registarFakulteta.model.MandatUprave;
 import rs.fon.registarFakulteta.repository.FakultetRepository;
 import rs.fon.registarFakulteta.repository.MandatUpraveRepository;
 import java.util.List;
+import rs.fon.registarFakulteta.exception.BadRequestException;
+import rs.fon.registarFakulteta.exception.ResourceNotFoundException;
 /**
  *
  * @author Korisnik
@@ -37,7 +39,7 @@ public class MandatUpraveService {
     @Transactional(readOnly = true)
     public MandatUpraveDto getById(Long id) {
         MandatUprave m = mandatUpraveRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Mandat uprave sa id: " + id + " ne postoji"));
+                .orElseThrow(() -> new ResourceNotFoundException("Mandat uprave sa id: " + id + " ne postoji"));
         return mandatUpraveMapper.toDto(m);
     }
 
@@ -70,13 +72,12 @@ public class MandatUpraveService {
 
     @Transactional
     public MandatUpraveDto create(MandatUpraveDto dto) {
-        if(dto.getDatumZavrsetka() != null &&
-            dto.getDatumZavrsetka().isBefore(dto.getDatumPocetka())) {
-            throw new RuntimeException("Datum zavrsetka ne moze biti pre datuma pocetka");
+        if(dto.getDatumZavrsetka() != null && dto.getDatumZavrsetka().isBefore(dto.getDatumPocetka())) {
+            throw new BadRequestException("Datum zavrsetka ne moze biti pre datuma pocetka");
         }
 
         Fakultet fakultet = fakultetRepository.findById(dto.getFakultetId())
-                .orElseThrow(() -> new RuntimeException("Fakultet sa id: " + dto.getFakultetId() + " ne postoji"));
+                .orElseThrow(() -> new ResourceNotFoundException("Fakultet sa id: " + dto.getFakultetId() + " ne postoji"));
 
         MandatUprave m = mandatUpraveMapper.toEntity(dto);
         m.setId(null);
@@ -89,15 +90,15 @@ public class MandatUpraveService {
     @Transactional
     public MandatUpraveDto update(Long id, MandatUpraveDto dto) {
         MandatUprave postojeci = mandatUpraveRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Mandat uprave sa id: " + id + " ne postoji"));
+                .orElseThrow(() -> new ResourceNotFoundException("Mandat uprave sa id: " + id + " ne postoji"));
 
         if(dto.getDatumZavrsetka() != null &&
             dto.getDatumZavrsetka().isBefore(dto.getDatumPocetka())) {
-            throw new RuntimeException("Datum zavrsetka ne moze biti pre datuma pocetka");
+            throw new BadRequestException("Datum zavrsetka ne moze biti pre datuma pocetka");
         }
 
         Fakultet fakultet = fakultetRepository.findById(dto.getFakultetId())
-                .orElseThrow(() -> new RuntimeException("Fakultet sa id: " + dto.getFakultetId() + " ne postoji"));
+                .orElseThrow(() -> new ResourceNotFoundException("Fakultet sa id: " + dto.getFakultetId() + " ne postoji"));
 
         postojeci.setDatumPocetka(dto.getDatumPocetka());
         postojeci.setDatumZavrsetka(dto.getDatumZavrsetka());
@@ -110,7 +111,7 @@ public class MandatUpraveService {
     @Transactional
     public void delete(Long id) {
         if(!mandatUpraveRepository.existsById(id)) {
-            throw new RuntimeException("Mandat uprave sa id: " + id + " ne postoji");
+            throw new ResourceNotFoundException("Mandat uprave sa id: " + id + " ne postoji");
         }
         mandatUpraveRepository.deleteById(id);
     }

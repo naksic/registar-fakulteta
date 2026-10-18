@@ -12,6 +12,7 @@ import rs.fon.registarFakulteta.mapper.LiceMapper;
 import rs.fon.registarFakulteta.model.Lice;
 import rs.fon.registarFakulteta.repository.LiceRepository;
 import java.util.List;
+import rs.fon.registarFakulteta.exception.ResourceNotFoundException;
 /**
  *
  * @author Korisnik
@@ -33,7 +34,7 @@ public class LiceService {
     @Transactional(readOnly = true)
     public LiceDto getById(Long id) {
         Lice lice = liceRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Lice sa id: " + id + " ne postoji"));
+                .orElseThrow(() -> new ResourceNotFoundException("Lice sa id: " + id + " ne postoji"));
         return liceMapper.toDto(lice);
     }
 
@@ -48,7 +49,7 @@ public class LiceService {
     @Transactional
     public LiceDto update(Long id, LiceDto dto) {
         Lice postojeci = liceRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Lice sa id: " + id + " ne postoji"));
+                .orElseThrow(() -> new ResourceNotFoundException("Lice sa id: " + id + " ne postoji"));
 
         postojeci.setIme(dto.getIme());
         postojeci.setPrezime(dto.getPrezime());
@@ -63,8 +64,18 @@ public class LiceService {
     @Transactional
     public void delete(Long id) {
         if(!liceRepository.existsById(id)) {
-            throw new RuntimeException("Lice sa id: " + id + " ne postoji");
+            throw new ResourceNotFoundException("Lice sa id: " + id + " ne postoji");
         }
         liceRepository.deleteById(id);
+    }
+    
+    @Transactional(readOnly = true)
+    public List<LiceDto> searchByImePrezime(String imePrezime) {
+        String pretraga = imePrezime.toLowerCase();
+        return liceRepository.findAll()
+                .stream()
+                .filter(l -> l.getIme().toLowerCase().contains(pretraga) || l.getPrezime().toLowerCase().contains(pretraga))
+                .map(liceMapper::toDto)
+                .toList();
     }
 }

@@ -12,6 +12,7 @@ import rs.fon.registarFakulteta.mapper.StudentMapper;
 import rs.fon.registarFakulteta.model.Student;
 import rs.fon.registarFakulteta.repository.StudentRepository;
 import java.util.List;
+import rs.fon.registarFakulteta.exception.ResourceNotFoundException;
 
 /**
  *
@@ -34,7 +35,7 @@ public class StudentService {
     @Transactional(readOnly = true)
     public StudentDto getById(Long id) {
         Student s = studentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Student sa id: " + id + " ne postoji"));
+                .orElseThrow(() -> new ResourceNotFoundException("Student sa id: " + id + " ne postoji"));
         return studentMapper.toDto(s);
     }
 
@@ -49,7 +50,7 @@ public class StudentService {
     @Transactional
     public StudentDto update(Long id, StudentDto dto) {
         Student postojeci = studentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Student sa id: " + id + " ne postoji"));
+                .orElseThrow(() -> new ResourceNotFoundException("Student sa id: " + id + " ne postoji"));
 
         postojeci.setIme(dto.getIme());
         postojeci.setPrezime(dto.getPrezime());
@@ -66,7 +67,7 @@ public class StudentService {
     @Transactional
     public void delete(Long id) {
         if(!studentRepository.existsById(id)) {
-            throw new RuntimeException("Student sa id: " + id + " ne postoji");
+            throw new ResourceNotFoundException("Student sa id: " + id + " ne postoji");
         }
         studentRepository.deleteById(id);
     }
