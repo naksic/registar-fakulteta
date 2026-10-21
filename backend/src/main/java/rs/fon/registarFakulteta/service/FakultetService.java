@@ -15,6 +15,11 @@ import rs.fon.registarFakulteta.repository.FakultetRepository;
 import rs.fon.registarFakulteta.repository.UniverzitetRepository;
 import java.util.List;
 import rs.fon.registarFakulteta.exception.ResourceNotFoundException;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 
 /**
  *
@@ -95,13 +100,74 @@ public class FakultetService {
                 .map(fakultetMapper::toDto)
                 .toList();
     }
-
+    
     @Transactional(readOnly = true)
-    public List<FakultetDto> searchByNaziv(String naziv) {
+    public List<FakultetDto> pretraga(String naziv, String skraceniNaziv, Long univerzitetId, String status) {
         return fakultetRepository.findAll()
                 .stream()
-                .filter(f -> f.getNaziv().toLowerCase().contains(naziv.toLowerCase()))
+                .filter(f -> naziv == null || naziv.isBlank()
+                        || f.getNaziv().toLowerCase().contains(naziv.toLowerCase()))
+                .filter(f -> skraceniNaziv == null || skraceniNaziv.isBlank()
+                        || f.getSkraceniNaziv().toLowerCase().contains(skraceniNaziv.toLowerCase()))
+                .filter(f -> univerzitetId == null
+                        || f.getUniverzitet().getId().equals(univerzitetId))
+                .filter(f -> status == null || status.isBlank()
+                        || f.getStatus().equalsIgnoreCase(status))
                 .map(fakultetMapper::toDto)
                 .toList();
+    }
+    
+    @Transactional(readOnly = true)
+    public byte[] exportUExcel() {
+        List<FakultetDto> fakulteti = getAll();
+
+        try (XSSFWorkbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("Fakulteti");
+
+            String[] kolone = {
+                "ID", "Naziv", "Skraceni naziv", "Univerzitet", "Adresa",
+                "Email", "Telefon", "Godina osnivanja", "PIB",
+                "Maticni broj", "Website", "Status"
+            };
+
+            CellStyle stilZaglavlja = workbook.createCellStyle();
+            Font font = workbook.createFont();
+            font.setBold(true);
+            stilZaglavlja.setFont(font);
+
+            Row zaglavlje = sheet.createRow(0);
+            for (int i = 0; i < kolone.length; i++) {
+                Cell celija = zaglavlje.createCell(i);
+                celija.setCellValue(kolone[i]);
+                celija.setCellStyle(stilZaglavlja);
+            }
+
+            int brojReda = 1;
+            for (FakultetDto f : fakulteti) {
+                Row red = sheet.createRow(brojReda++);
+                red.createCell(0).setCellValue(f.getId());
+                red.createCell(1).setCellValue(f.getNaziv());
+                red.createCell(2).setCellValue(f.getSkraceniNaziv());
+                red.createCell(3).setCellValue(f.getNazivUniverziteta());
+                red.createCell(4).setCellValue(f.getAdresa());
+                red.createCell(5).setCellValue(f.getEmail());
+                red.createCell(6).setCellValue(f.getTelefon());
+                red.createCell(7).setCellValue(f.getGodinaOsnivanja());
+                red.createCell(8).setCellValue(f.getPib());
+                red.createCell(9).setCellValue(f.getMaticniBroj());
+                red.createCell(10).setCellValue(f.getWebsite());
+                red.createCell(11).setCellValue(f.getStatus());
+            }
+
+            for (int i = 0; i < kolone.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            ByteArrayOutputStream izlaz = new ByteArrayOutputStream();
+            workbook.write(izlaz);
+            return izlaz.toByteArray();
+        } catch (IOException e) {
+            throw new UncheckedIOException("Greška pri generisanju Excel fajla", e);
+        }
     }
 }

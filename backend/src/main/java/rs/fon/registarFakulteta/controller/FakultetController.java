@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import rs.fon.registarFakulteta.dto.FakultetDto;
 import rs.fon.registarFakulteta.service.FakultetService;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 
 /**
  *
@@ -47,11 +49,6 @@ public class FakultetController {
         return ResponseEntity.ok(fakultetService.getByUniverzitetId(univerzitetId));
     }
 
-    @GetMapping("/pretraga")
-    public ResponseEntity<List<FakultetDto>> searchByNaziv(@RequestParam String naziv) {
-        return ResponseEntity.ok(fakultetService.searchByNaziv(naziv));
-    }
-
     @PostMapping
     public ResponseEntity<FakultetDto> create(@Valid @RequestBody FakultetDto dto) {
         FakultetDto sacuvan = fakultetService.create(dto);
@@ -67,5 +64,25 @@ public class FakultetController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         fakultetService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+    
+    @GetMapping("/pretraga")
+    public ResponseEntity<List<FakultetDto>> pretraga(
+            @RequestParam(required = false) String naziv,
+            @RequestParam(required = false) String skraceniNaziv,
+            @RequestParam(required = false) Long univerzitetId,
+            @RequestParam(required = false) String status) {
+        return ResponseEntity.ok(fakultetService.pretraga(naziv, skraceniNaziv, univerzitetId, status));
+    }
+    
+    @GetMapping("/export/excel")
+    public ResponseEntity<byte[]> exportUExcel() {
+        byte[] fajl = fakultetService.exportUExcel();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+        headers.setContentDispositionFormData("attachment", "fakulteti.xlsx");
+
+        return ResponseEntity.ok().headers(headers).body(fajl);
     }
 }
