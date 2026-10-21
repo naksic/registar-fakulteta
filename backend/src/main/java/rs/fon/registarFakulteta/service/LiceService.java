@@ -74,7 +74,11 @@ public class LiceService {
         String pretraga = imePrezime.toLowerCase();
         return liceRepository.findAll()
                 .stream()
-                .filter(l -> l.getIme().toLowerCase().contains(pretraga) || l.getPrezime().toLowerCase().contains(pretraga))
+                .filter(l ->
+                    l.getIme().toLowerCase().contains(pretraga)
+                    || l.getPrezime().toLowerCase().contains(pretraga)
+                    || (l.getIme() + " " + l.getPrezime()).toLowerCase().contains(pretraga)
+                )
                 .map(liceMapper::toDto)
                 .toList();
     }

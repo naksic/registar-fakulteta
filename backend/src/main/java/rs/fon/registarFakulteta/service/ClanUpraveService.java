@@ -17,6 +17,12 @@ import rs.fon.registarFakulteta.repository.LiceRepository;
 import rs.fon.registarFakulteta.repository.MandatUpraveRepository;
 import java.util.List;
 import rs.fon.registarFakulteta.exception.ResourceNotFoundException;
+import rs.fon.registarFakulteta.model.NastavnoOsoblje;
+import rs.fon.registarFakulteta.model.AdministrativnoOsoblje;
+import rs.fon.registarFakulteta.model.Student;
+import rs.fon.registarFakulteta.model.Funkcija;
+import rs.fon.registarFakulteta.model.Zvanje;
+import rs.fon.registarFakulteta.exception.BadRequestException;
 
 /**
  *
@@ -62,7 +68,9 @@ public class ClanUpraveService {
 
         Lice lice = liceRepository.findById(dto.getLiceId())
                 .orElseThrow(() -> new ResourceNotFoundException("Lice sa id: " + dto.getLiceId() + " ne postoji"));
-
+        
+        validirajFunkcijuIZvanje(dto.getFunkcija(), lice);
+        
         ClanUprave c = clanUpraveMapper.toEntity(dto);
         c.setId(null);
         c.setMandatUprave(mandat);
@@ -83,6 +91,8 @@ public class ClanUpraveService {
         Lice lice = liceRepository.findById(dto.getLiceId())
                 .orElseThrow(() -> new ResourceNotFoundException("Lice sa id: " + dto.getLiceId() + " ne postoji"));
 
+        validirajFunkcijuIZvanje(dto.getFunkcija(), lice);
+        
         postojeci.setFunkcija(dto.getFunkcija());
         postojeci.setMandatUprave(mandat);
         postojeci.setLice(lice);
@@ -97,5 +107,30 @@ public class ClanUpraveService {
             throw new ResourceNotFoundException("Clan uprave sa id: " + id + " ne postoji");
         }
         clanUpraveRepository.deleteById(id);
+    }
+    
+    private void validirajFunkcijuIZvanje(Funkcija funkcija, Lice lice) {
+        switch (funkcija) {
+            case DEKAN -> {
+                if (!(lice instanceof NastavnoOsoblje no) || no.getZvanje() != Zvanje.REDOVNI_PROFESOR) {
+                    throw new BadRequestException("Za funkciju DEKAN, lice mora biti nastavno osoblje sa zvanjem REDOVNI_PROFESOR");
+                }
+            }
+            case SEKRETAR -> {
+                if (!(lice instanceof AdministrativnoOsoblje)) {
+                    throw new BadRequestException("Za funkciju SEKRETAR, lice mora biti administrativno osoblje");
+                }
+            }
+            case PRODEKAN_STUDENT -> {
+                if (!(lice instanceof Student)) {
+                    throw new BadRequestException("Za funkciju PRODEKAN_STUDENT, lice mora biti student");
+                }
+            }
+            case PRODEKAN_ZA_NASTAVU, PRODEKAN_ZA_NAUKU, PRODEKAN_ZA_FINANSIJE -> {
+                if (!(lice instanceof NastavnoOsoblje)) {
+                    throw new BadRequestException("Za ovu funkciju prodekana, lice mora biti nastavno osoblje");
+                }
+            }
+        }
     }
 }
