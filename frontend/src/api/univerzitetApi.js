@@ -1,11 +1,11 @@
-import axiosClient from './axiosClient'
+import axiosClient from "./axiosClient";
 
 const univerzitetApi = {
-  getAll: () => axiosClient.get('/univerziteti'),
+  getAll: () => axiosClient.get("/univerziteti"),
   getById: (id) => axiosClient.get(`/univerziteti/${id}`),
-  create: (podaci) => axiosClient.post('/univerziteti', podaci),
+  create: (podaci) => axiosClient.post("/univerziteti", podaci),
   update: (id, podaci) => axiosClient.put(`/univerziteti/${id}`, podaci),
   delete: (id) => axiosClient.delete(`/univerziteti/${id}`),
-}
+};
 
-export default univerzitetApi
+export default univerzitetApi;

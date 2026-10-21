@@ -1,64 +1,69 @@
-import { useEffect, useState } from 'react'
-import univerzitetApi from '../api/univerzitetApi'
-import UniverzitetForma from '../components/UniverzitetForma'
+import { useEffect, useState } from "react";
+import univerzitetApi from "../api/univerzitetApi";
+import UniverzitetForma from "../components/UniverzitetForma";
 
 function UniverzitetiPage() {
-  const [univerziteti, setUniverziteti] = useState([])
-  const [greska, setGreska] = useState(null)
-  const [ucitavanje, setUcitavanje] = useState(true)
+  const [univerziteti, setUniverziteti] = useState([]);
+  const [greska, setGreska] = useState(null);
+  const [ucitavanje, setUcitavanje] = useState(true);
 
-  const [prikaziFormu, setPrikaziFormu] = useState(false)
-  const [univerzitetZaIzmenu, setUniverzitetZaIzmenu] = useState(null)
+  const [prikaziFormu, setPrikaziFormu] = useState(false);
+  const [univerzitetZaIzmenu, setUniverzitetZaIzmenu] = useState(null);
 
   const ucitajUniverzitete = () => {
-    setUcitavanje(true)
-    univerzitetApi.getAll()
-      .then(response => setUniverziteti(response.data))
-      .catch(error => setGreska(error.message))
-      .finally(() => setUcitavanje(false))
-  }
+    setUcitavanje(true);
+    univerzitetApi
+      .getAll()
+      .then((response) => setUniverziteti(response.data))
+      .catch((error) => setGreska(error.message))
+      .finally(() => setUcitavanje(false));
+  };
 
   useEffect(() => {
-    ucitajUniverzitete()
-  }, [])
+    ucitajUniverzitete();
+  }, []);
 
   const obrisiUniverzitet = (id) => {
-    if (!window.confirm('Da li si siguran da želiš da obrišeš ovaj univerzitet?')) return
+    if (
+      !window.confirm("Da li si siguran da želiš da obrišeš ovaj univerzitet?")
+    )
+      return;
 
-    univerzitetApi.delete(id)
+    univerzitetApi
+      .delete(id)
       .then(() => ucitajUniverzitete())
-      .catch(error => setGreska(error.message))
-  }
+      .catch((error) => setGreska(error.message));
+  };
 
   const otvoriFormuZaDodavanje = () => {
-    setUniverzitetZaIzmenu(null)
-    setPrikaziFormu(true)
-  }
+    setUniverzitetZaIzmenu(null);
+    setPrikaziFormu(true);
+  };
 
   const otvoriFormuZaIzmenu = (univerzitet) => {
-    setUniverzitetZaIzmenu(univerzitet)
-    setPrikaziFormu(true)
-  }
+    setUniverzitetZaIzmenu(univerzitet);
+    setPrikaziFormu(true);
+  };
 
   const zatvoriFormu = () => {
-    setPrikaziFormu(false)
-    setUniverzitetZaIzmenu(null)
-  }
+    setPrikaziFormu(false);
+    setUniverzitetZaIzmenu(null);
+  };
 
   const sacuvajUniverzitet = (podaci) => {
     const zahtev = univerzitetZaIzmenu
       ? univerzitetApi.update(univerzitetZaIzmenu.id, podaci)
-      : univerzitetApi.create(podaci)
+      : univerzitetApi.create(podaci);
 
     zahtev
       .then(() => {
-        zatvoriFormu()
-        ucitajUniverzitete()
+        zatvoriFormu();
+        ucitajUniverzitete();
       })
-      .catch(error => setGreska(error.message))
-  }
+      .catch((error) => setGreska(error.message));
+  };
 
-  if (ucitavanje) return <div className="container mt-4">Učitavanje...</div>
+  if (ucitavanje) return <div className="container mt-4">Učitavanje...</div>;
 
   return (
     <div className="container mt-4">
@@ -73,7 +78,10 @@ function UniverzitetiPage() {
           onOtkazi={zatvoriFormu}
         />
       ) : (
-        <button className="btn btn-primary mb-3" onClick={otvoriFormuZaDodavanje}>
+        <button
+          className="btn btn-primary mb-3"
+          onClick={otvoriFormuZaDodavanje}
+        >
           Dodaj novi univerzitet
         </button>
       )}
@@ -92,7 +100,7 @@ function UniverzitetiPage() {
           </tr>
         </thead>
         <tbody>
-          {univerziteti.map(u => (
+          {univerziteti.map((u) => (
             <tr key={u.id}>
               <td>{u.id}</td>
               <td>{u.naziv}</td>
@@ -102,10 +110,16 @@ function UniverzitetiPage() {
               <td>{u.godinaOsnivanja}</td>
               <td>{u.website}</td>
               <td>
-                <button className="btn btn-outline-primary btn-sm me-2" onClick={() => otvoriFormuZaIzmenu(u)}>
+                <button
+                  className="btn btn-outline-primary btn-sm me-2"
+                  onClick={() => otvoriFormuZaIzmenu(u)}
+                >
                   Izmeni
                 </button>
-                <button className="btn btn-danger btn-sm" onClick={() => obrisiUniverzitet(u.id)}>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={() => obrisiUniverzitet(u.id)}
+                >
                   Obriši
                 </button>
               </td>
@@ -114,7 +128,7 @@ function UniverzitetiPage() {
         </tbody>
       </table>
     </div>
-  )
+  );
 }
 
-export default UniverzitetiPage
+export default UniverzitetiPage;

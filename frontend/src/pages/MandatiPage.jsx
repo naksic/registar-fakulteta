@@ -1,27 +1,27 @@
-import { useEffect, useState } from 'react'
-import mandatUpraveApi from '../api/mandatUpraveApi'
-import fakultetApi from '../api/fakultetApi'
-import nastavnoOsobljeApi from '../api/nastavnoOsobljeApi'
-import administrativnoOsobljeApi from '../api/administrativnoOsobljeApi'
-import studentApi from '../api/studentApi'
-import MandatForma from '../components/MandatForma'
-import ClanoviUprave from '../components/ClanoviUprave'
+import { useEffect, useState } from "react";
+import mandatUpraveApi from "../api/mandatUpraveApi";
+import fakultetApi from "../api/fakultetApi";
+import nastavnoOsobljeApi from "../api/nastavnoOsobljeApi";
+import administrativnoOsobljeApi from "../api/administrativnoOsobljeApi";
+import studentApi from "../api/studentApi";
+import MandatForma from "../components/MandatForma";
+import ClanoviUprave from "../components/ClanoviUprave";
 
 function MandatiPage() {
-  const [mandati, setMandati] = useState([])
-  const [fakulteti, setFakulteti] = useState([])
-  const [nastavnoOsoblje, setNastavnoOsoblje] = useState([])
-  const [administrativnoOsoblje, setAdministrativnoOsoblje] = useState([])
-  const [studenti, setStudenti] = useState([])
-  const [greska, setGreska] = useState(null)
-  const [ucitavanje, setUcitavanje] = useState(true)
+  const [mandati, setMandati] = useState([]);
+  const [fakulteti, setFakulteti] = useState([]);
+  const [nastavnoOsoblje, setNastavnoOsoblje] = useState([]);
+  const [administrativnoOsoblje, setAdministrativnoOsoblje] = useState([]);
+  const [studenti, setStudenti] = useState([]);
+  const [greska, setGreska] = useState(null);
+  const [ucitavanje, setUcitavanje] = useState(true);
 
-  const [prikaziFormu, setPrikaziFormu] = useState(false)
-  const [mandatZaIzmenu, setMandatZaIzmenu] = useState(null)
-  const [prikazaniMandatId, setPrikazaniMandatId] = useState(null)
+  const [prikaziFormu, setPrikaziFormu] = useState(false);
+  const [mandatZaIzmenu, setMandatZaIzmenu] = useState(null);
+  const [prikazaniMandatId, setPrikazaniMandatId] = useState(null);
 
   const ucitajPodatke = () => {
-    setUcitavanje(true)
+    setUcitavanje(true);
     Promise.all([
       mandatUpraveApi.getAll(),
       fakultetApi.getAll(),
@@ -29,62 +29,76 @@ function MandatiPage() {
       administrativnoOsobljeApi.getAll(),
       studentApi.getAll(),
     ])
-      .then(([mandatiRes, fakultetiRes, nastavnoRes, administrativnoRes, studentiRes]) => {
-        setMandati(mandatiRes.data)
-        setFakulteti(fakultetiRes.data)
-        setNastavnoOsoblje(nastavnoRes.data)
-        setAdministrativnoOsoblje(administrativnoRes.data)
-        setStudenti(studentiRes.data)
-      })
-      .catch(error => setGreska(error.message))
-      .finally(() => setUcitavanje(false))
-  }
+      .then(
+        ([
+          mandatiRes,
+          fakultetiRes,
+          nastavnoRes,
+          administrativnoRes,
+          studentiRes,
+        ]) => {
+          setMandati(mandatiRes.data);
+          setFakulteti(fakultetiRes.data);
+          setNastavnoOsoblje(nastavnoRes.data);
+          setAdministrativnoOsoblje(administrativnoRes.data);
+          setStudenti(studentiRes.data);
+        },
+      )
+      .catch((error) => setGreska(error.message))
+      .finally(() => setUcitavanje(false));
+  };
 
   useEffect(() => {
-    ucitajPodatke()
-  }, [])
+    ucitajPodatke();
+  }, []);
 
   const obrisiMandat = (id) => {
-    if (!window.confirm('Da li si siguran da želiš da obrišeš ovaj mandat? Ovo će obrisati i sve njegove članove uprave.')) return
+    if (
+      !window.confirm(
+        "Da li si siguran da želiš da obrišeš ovaj mandat? Ovo će obrisati i sve njegove članove uprave.",
+      )
+    )
+      return;
 
-    mandatUpraveApi.delete(id)
+    mandatUpraveApi
+      .delete(id)
       .then(() => ucitajPodatke())
-      .catch(error => setGreska(error.message))
-  }
+      .catch((error) => setGreska(error.message));
+  };
 
   const otvoriFormuZaDodavanje = () => {
-    setMandatZaIzmenu(null)
-    setPrikaziFormu(true)
-  }
+    setMandatZaIzmenu(null);
+    setPrikaziFormu(true);
+  };
 
   const otvoriFormuZaIzmenu = (mandat) => {
-    setMandatZaIzmenu(mandat)
-    setPrikaziFormu(true)
-  }
+    setMandatZaIzmenu(mandat);
+    setPrikaziFormu(true);
+  };
 
   const zatvoriFormu = () => {
-    setPrikaziFormu(false)
-    setMandatZaIzmenu(null)
-  }
+    setPrikaziFormu(false);
+    setMandatZaIzmenu(null);
+  };
 
   const sacuvajMandat = (podaci) => {
     const zahtev = mandatZaIzmenu
       ? mandatUpraveApi.update(mandatZaIzmenu.id, podaci)
-      : mandatUpraveApi.create(podaci)
+      : mandatUpraveApi.create(podaci);
 
     zahtev
       .then(() => {
-        zatvoriFormu()
-        ucitajPodatke()
+        zatvoriFormu();
+        ucitajPodatke();
       })
-      .catch(error => setGreska(error.message))
-  }
+      .catch((error) => setGreska(error.message));
+  };
 
   const prikaziClanove = (mandatId) => {
-    setPrikazaniMandatId(prikazaniMandatId === mandatId ? null : mandatId)
-  }
+    setPrikazaniMandatId(prikazaniMandatId === mandatId ? null : mandatId);
+  };
 
-  if (ucitavanje) return <div className="container mt-4">Učitavanje...</div>
+  if (ucitavanje) return <div className="container mt-4">Učitavanje...</div>;
 
   return (
     <div className="container mt-4">
@@ -100,7 +114,10 @@ function MandatiPage() {
           onOtkazi={zatvoriFormu}
         />
       ) : (
-        <button className="btn btn-primary mb-3" onClick={otvoriFormuZaDodavanje}>
+        <button
+          className="btn btn-primary mb-3"
+          onClick={otvoriFormuZaDodavanje}
+        >
           Dodaj novi mandat
         </button>
       )}
@@ -117,21 +134,32 @@ function MandatiPage() {
           </tr>
         </thead>
         <tbody>
-          {mandati.map(m => (
+          {mandati.map((m) => (
             <tr key={m.id}>
               <td>{m.id}</td>
               <td>{m.nazivFakulteta}</td>
               <td>{m.datumPocetka}</td>
-              <td>{m.datumZavrsetka || '—'}</td>
-              <td>{m.datumZavrsetka ? 'Bivši' : 'Aktivan'}</td>
+              <td>{m.datumZavrsetka || "—"}</td>
+              <td>{m.datumZavrsetka ? "Bivši" : "Aktivan"}</td>
               <td>
-                <button className="btn btn-outline-secondary btn-sm me-2" onClick={() => prikaziClanove(m.id)}>
-                  {prikazaniMandatId === m.id ? 'Sakrij članove' : 'Članovi uprave'}
+                <button
+                  className="btn btn-outline-secondary btn-sm me-2"
+                  onClick={() => prikaziClanove(m.id)}
+                >
+                  {prikazaniMandatId === m.id
+                    ? "Sakrij članove"
+                    : "Članovi uprave"}
                 </button>
-                <button className="btn btn-outline-primary btn-sm me-2" onClick={() => otvoriFormuZaIzmenu(m)}>
+                <button
+                  className="btn btn-outline-primary btn-sm me-2"
+                  onClick={() => otvoriFormuZaIzmenu(m)}
+                >
                   Izmeni
                 </button>
-                <button className="btn btn-danger btn-sm" onClick={() => obrisiMandat(m.id)}>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={() => obrisiMandat(m.id)}
+                >
                   Obriši
                 </button>
               </td>
@@ -149,7 +177,7 @@ function MandatiPage() {
         />
       )}
     </div>
-  )
+  );
 }
 
-export default MandatiPage
+export default MandatiPage;
