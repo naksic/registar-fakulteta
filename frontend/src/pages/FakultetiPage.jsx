@@ -4,7 +4,6 @@ import univerzitetApi from "../api/univerzitetApi";
 import FakultetForma from "../components/FakultetForma";
 
 function FakultetiPage() {
-  const [pojamPretrage, setPojamPretrage] = useState("");
   const [fakulteti, setFakulteti] = useState([]);
   const [univerziteti, setUniverziteti] = useState([]);
   const [greska, setGreska] = useState(null);
@@ -12,6 +11,13 @@ function FakultetiPage() {
 
   const [prikaziFormu, setPrikaziFormu] = useState(false);
   const [fakultetZaIzmenu, setFakultetZaIzmenu] = useState(null);
+
+
+  const [filterNaziv, setFilterNaziv] = useState("");
+  const [filterSkraceniNaziv, setFilterSkraceniNaziv] = useState("");
+  const [filterUniverzitetId, setFilterUniverzitetId] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [pretragaAktivna, setPretragaAktivna] = useState(false);
 
   const ucitajPodatke = () => {
     setUcitavanje(true);
@@ -68,17 +74,55 @@ function FakultetiPage() {
 
   const pretraziFakultete = (e) => {
     e.preventDefault();
+
+    const kriterijumi = {};
+    if (filterNaziv.trim()) kriterijumi.naziv = filterNaziv.trim();
+    if (filterSkraceniNaziv.trim())
+      kriterijumi.skraceniNaziv = filterSkraceniNaziv.trim();
+    if (filterUniverzitetId) kriterijumi.univerzitetId = filterUniverzitetId;
+    if (filterStatus) kriterijumi.status = filterStatus;
+
+    if (Object.keys(kriterijumi).length === 0) {
+      ocistiPretragu();
+      return;
+    }
+
     setUcitavanje(true);
     fakultetApi
-      .search(pojamPretrage)
-      .then((response) => setFakulteti(response.data))
+      .pretraga(kriterijumi)
+      .then((response) => {
+        setFakulteti(response.data);
+        setPretragaAktivna(true);
+      })
       .catch((error) => setGreska(error.message))
       .finally(() => setUcitavanje(false));
   };
 
   const ocistiPretragu = () => {
-    setPojamPretrage("");
+    setFilterNaziv("");
+    setFilterSkraceniNaziv("");
+    setFilterUniverzitetId("");
+    setFilterStatus("");
+    setPretragaAktivna(false);
     ucitajPodatke();
+  };
+
+  const preuzmiExcel = () => {
+    fakultetApi
+      .exportExcel()
+      .then((response) => {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", "fakulteti.xlsx");
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+      })
+      .catch((error) =>
+        setGreska(error.response?.data?.message || error.message)
+      );
   };
 
   if (ucitavanje) return <div className="container mt-4">Učitavanje...</div>;
@@ -87,24 +131,69 @@ function FakultetiPage() {
     <div className="container mt-4">
       <h1>Fakulteti</h1>
 
-      <form onSubmit={pretraziFakultete} className="d-flex gap-2 mb-3">
-        <input
-          className="form-control"
-          style={{ maxWidth: "300px" }}
-          placeholder="Pretraga po nazivu..."
-          value={pojamPretrage}
-          onChange={(e) => setPojamPretrage(e.target.value)}
-        />
-        <button type="submit" className="btn btn-outline-primary">
-          Pretraži
-        </button>
-        <button
-          type="button"
-          className="btn btn-outline-secondary"
-          onClick={ocistiPretragu}
-        >
-          Poništi
-        </button>
+      <form
+        onSubmit={pretraziFakultete}
+        className="p-3 border rounded mb-3 bg-light"
+      >
+        <h6>Pretraga po kriterijumima</h6>
+        <div className="row g-2">
+          <div className="col-md-3">
+            <input
+              className="form-control"
+              placeholder="Naziv..."
+              value={filterNaziv}
+              onChange={(e) => setFilterNaziv(e.target.value)}
+            />
+          </div>
+          <div className="col-md-3">
+            <input
+              className="form-control"
+              placeholder="Skraćeni naziv..."
+              value={filterSkraceniNaziv}
+              onChange={(e) => setFilterSkraceniNaziv(e.target.value)}
+            />
+          </div>
+          <div className="col-md-3">
+            <select
+              className="form-select"
+              value={filterUniverzitetId}
+              onChange={(e) => setFilterUniverzitetId(e.target.value)}
+            >
+              <option value="">Svi univerziteti</option>
+              {univerziteti.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.naziv}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="col-md-3">
+            <select
+              className="form-select"
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+            >
+              <option value="">Svi statusi</option>
+              <option value="AKTIVAN">AKTIVAN</option>
+              <option value="NEAKTIVAN">NEAKTIVAN</option>
+              <option value="UGASEN">UGAŠEN</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="mt-2 d-flex gap-2">
+          <button type="submit" className="btn btn-outline-primary">
+            Pretraži
+          </button>
+          <button
+            type="button"
+            className="btn btn-outline-secondary"
+            onClick={ocistiPretragu}
+            disabled={!pretragaAktivna}
+          >
+            Poništi
+          </button>
+        </div>
       </form>
 
       {greska && <p className="text-danger">Greška: {greska}</p>}
@@ -117,12 +206,22 @@ function FakultetiPage() {
           onOtkazi={zatvoriFormu}
         />
       ) : (
-        <button
-          className="btn btn-primary mb-3"
-          onClick={otvoriFormuZaDodavanje}
-        >
-          Dodaj novi fakultet
-        </button>
+        <div className="d-flex gap-2 mb-3">
+          <button className="btn btn-primary" onClick={otvoriFormuZaDodavanje}>
+            Dodaj novi fakultet
+          </button>
+          <button className="btn btn-success" onClick={preuzmiExcel}>
+            Izvezi u Excel
+          </button>
+        </div>
+      )}
+
+      
+
+      {pretragaAktivna && (
+        <p className="text-muted">
+          Pronađeno fakulteta: {fakulteti.length}
+        </p>
       )}
 
       <table className="table table-striped mt-3">
@@ -162,6 +261,13 @@ function FakultetiPage() {
               </td>
             </tr>
           ))}
+          {fakulteti.length === 0 && (
+            <tr>
+              <td colSpan="7" className="text-center text-muted">
+                Nema fakulteta koji zadovoljavaju zadate kriterijume.
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </div>

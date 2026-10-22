@@ -6,8 +6,8 @@ const fakultetApi = {
   create: (podaci) => axiosClient.post("/fakulteti", podaci),
   update: (id, podaci) => axiosClient.put(`/fakulteti/${id}`, podaci),
   delete: (id) => axiosClient.delete(`/fakulteti/${id}`),
-  search: (naziv) =>
-    axiosClient.get("/fakulteti/pretraga", { params: { naziv } }),
+  pretraga: (kriterijumi) => axiosClient.get("/fakulteti/pretraga", { params: kriterijumi }),
+  exportExcel: () => axiosClient.get("/fakulteti/export/excel", { responseType: "blob" }),
 };
 
 export default fakultetApi;
