@@ -55,4 +55,7 @@ public class Univerzitet {
 
     @OneToMany(mappedBy = "univerzitet", cascade = CascadeType.ALL, orphanRemoval = false)
     private List<Fakultet> fakulteti = new ArrayList<>();
+    
+    @OneToMany(mappedBy = "univerzitet", cascade = CascadeType.ALL, orphanRemoval = false)
+    private List<Korisnik> korisnici = new ArrayList<>();
 }
