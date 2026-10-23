@@ -31,4 +31,6 @@ public class MandatUpraveDto {
     private Long fakultetId;
 
     private String nazivFakulteta;
+    
+    private String nazivUniverziteta;
 }

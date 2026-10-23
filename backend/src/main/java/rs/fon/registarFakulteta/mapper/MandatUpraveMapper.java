@@ -22,6 +22,7 @@ public class MandatUpraveMapper {
         dto.setDatumZavrsetka(m.getDatumZavrsetka());
         dto.setFakultetId(m.getFakultet().getId());
         dto.setNazivFakulteta(m.getFakultet().getNaziv());
+        dto.setNazivUniverziteta(m.getFakultet().getUniverzitet().getNaziv());
         return dto;
     }
 
