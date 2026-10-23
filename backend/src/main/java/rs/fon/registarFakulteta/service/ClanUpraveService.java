@@ -70,6 +70,7 @@ public class ClanUpraveService {
                 .orElseThrow(() -> new ResourceNotFoundException("Lice sa id: " + dto.getLiceId() + " ne postoji"));
         
         validirajFunkcijuIZvanje(dto.getFunkcija(), lice);
+        proveriJedinstvenostFunkcije(dto.getMandatUpraveId(), dto.getFunkcija(), null);
         
         ClanUprave c = clanUpraveMapper.toEntity(dto);
         c.setId(null);
@@ -92,6 +93,7 @@ public class ClanUpraveService {
                 .orElseThrow(() -> new ResourceNotFoundException("Lice sa id: " + dto.getLiceId() + " ne postoji"));
 
         validirajFunkcijuIZvanje(dto.getFunkcija(), lice);
+        proveriJedinstvenostFunkcije(dto.getMandatUpraveId(), dto.getFunkcija(), id);
         
         postojeci.setFunkcija(dto.getFunkcija());
         postojeci.setMandatUprave(mandat);
@@ -131,6 +133,20 @@ public class ClanUpraveService {
                     throw new BadRequestException("Za ovu funkciju prodekana, lice mora biti nastavno osoblje");
                 }
             }
+        }
+    }
+    
+    private void proveriJedinstvenostFunkcije(Long mandatUpraveId, Funkcija funkcija, Long idZaIzuzimanje) {
+        boolean vecPostoji = clanUpraveRepository.findAll().stream()
+                .filter(c -> c.getMandatUprave().getId().equals(mandatUpraveId))
+                .filter(c -> c.getFunkcija() == funkcija)
+                .anyMatch(c -> idZaIzuzimanje == null || !c.getId().equals(idZaIzuzimanje));
+
+        if (vecPostoji) {
+            throw new BadRequestException(
+                "Funkcija " + funkcija + " je vec dodeljena clanu uprave u okviru ovog mandata. " +
+                "Svaka funkcija moze imati samo jednog nosioca po mandatu."
+            );
         }
     }
 }

@@ -16,6 +16,7 @@ import rs.fon.registarFakulteta.repository.MandatUpraveRepository;
 import java.util.List;
 import rs.fon.registarFakulteta.exception.BadRequestException;
 import rs.fon.registarFakulteta.exception.ResourceNotFoundException;
+import java.time.LocalDate;
 /**
  *
  * @author Korisnik
@@ -75,6 +76,8 @@ public class MandatUpraveService {
         if(dto.getDatumZavrsetka() != null && dto.getDatumZavrsetka().isBefore(dto.getDatumPocetka())) {
             throw new BadRequestException("Datum zavrsetka ne moze biti pre datuma pocetka");
         }
+        
+        proveriPreklapanjeMandata(dto, null);
 
         Fakultet fakultet = fakultetRepository.findById(dto.getFakultetId())
                 .orElseThrow(() -> new ResourceNotFoundException("Fakultet sa id: " + dto.getFakultetId() + " ne postoji"));
@@ -96,6 +99,8 @@ public class MandatUpraveService {
             dto.getDatumZavrsetka().isBefore(dto.getDatumPocetka())) {
             throw new BadRequestException("Datum zavrsetka ne moze biti pre datuma pocetka");
         }
+        
+        proveriPreklapanjeMandata(dto, id);
 
         Fakultet fakultet = fakultetRepository.findById(dto.getFakultetId())
                 .orElseThrow(() -> new ResourceNotFoundException("Fakultet sa id: " + dto.getFakultetId() + " ne postoji"));
@@ -114,5 +119,31 @@ public class MandatUpraveService {
             throw new ResourceNotFoundException("Mandat uprave sa id: " + id + " ne postoji");
         }
         mandatUpraveRepository.deleteById(id);
+    }
+    
+    private void proveriPreklapanjeMandata(MandatUpraveDto dto, Long idZaIzuzimanje) {
+        LocalDate novaPocetak = dto.getDatumPocetka();
+        LocalDate novaKraj = dto.getDatumZavrsetka() != null ? dto.getDatumZavrsetka() : LocalDate.MAX;
+
+        List<MandatUprave> postojeciMandati = mandatUpraveRepository.findAll().stream()
+                .filter(m -> m.getFakultet().getId().equals(dto.getFakultetId()))
+                .filter(m -> idZaIzuzimanje == null || !m.getId().equals(idZaIzuzimanje))
+                .toList();
+
+        for (MandatUprave postojeci : postojeciMandati) {
+            LocalDate postojeciPocetak = postojeci.getDatumPocetka();
+            LocalDate postojeciKraj = postojeci.getDatumZavrsetka() != null ? postojeci.getDatumZavrsetka() : LocalDate.MAX;
+
+            boolean preklapaSe = !novaPocetak.isAfter(postojeciKraj) && !postojeciPocetak.isAfter(novaKraj);
+
+            if (preklapaSe) {
+                String period = postojeci.getDatumZavrsetka() != null
+                        ? postojeci.getDatumPocetka() + " do " + postojeci.getDatumZavrsetka()
+                        : postojeci.getDatumPocetka() + " (trenutno aktivan, bez datuma završetka)";
+
+                throw new BadRequestException("Na ovom fakultetu vec postoji mandat uprave u periodu " + period +
+                    ". Mandati uprave na istom fakultetu ne smeju se vremenski preklapati.");
+            }
+        }
     }
 }
