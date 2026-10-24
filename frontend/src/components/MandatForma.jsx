@@ -51,7 +51,7 @@ function MandatForma({ postojeciMandat, fakulteti, onSacuvaj, onOtkazi }) {
           <option value="">-- Izaberi fakultet --</option>
           {fakulteti.map((f) => (
             <option key={f.id} value={f.id}>
-              {f.naziv}
+              {f.naziv} ({f.nazivUniverziteta})
             </option>
           ))}
         </select>

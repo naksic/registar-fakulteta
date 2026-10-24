@@ -53,12 +53,10 @@ function MandatiPage() {
   }, []);
 
   const obrisiMandat = (id) => {
-    if (
-      !window.confirm(
-        "Da li si siguran da želiš da obrišeš ovaj mandat? Ovo će obrisati i sve njegove članove uprave.",
-      )
-    )
+    if (!window.confirm("Da li si siguran da želiš da obrišeš ovaj mandat? \nUPOZORENJE: Ovo će obrisati i sve njegove članove uprave.",))
       return;
+
+    setGreska(null);
 
     mandatUpraveApi
       .delete(id)
@@ -67,21 +65,25 @@ function MandatiPage() {
   };
 
   const otvoriFormuZaDodavanje = () => {
+    setGreska(null);
     setMandatZaIzmenu(null);
     setPrikaziFormu(true);
   };
 
   const otvoriFormuZaIzmenu = (mandat) => {
+    setGreska(null);
     setMandatZaIzmenu(mandat);
     setPrikaziFormu(true);
   };
 
   const zatvoriFormu = () => {
+    setGreska(null);
     setPrikaziFormu(false);
     setMandatZaIzmenu(null);
   };
 
   const sacuvajMandat = (podaci) => {
+    setGreska(null);
     const zahtev = mandatZaIzmenu
       ? mandatUpraveApi.update(mandatZaIzmenu.id, podaci)
       : mandatUpraveApi.create(podaci);
@@ -91,7 +93,9 @@ function MandatiPage() {
         zatvoriFormu();
         ucitajPodatke();
       })
-      .catch((error) => setGreska(error.message));
+      .catch((error) => {
+        setGreska(error.response?.data?.poruka || error.message);
+      });
   };
 
   const prikaziClanove = (mandatId) => {
@@ -127,6 +131,7 @@ function MandatiPage() {
           <tr>
             <th>ID</th>
             <th>Fakultet</th>
+            <th>Univerzitet</th>
             <th>Datum početka</th>
             <th>Datum završetka</th>
             <th>Status</th>
@@ -138,6 +143,7 @@ function MandatiPage() {
             <tr key={m.id}>
               <td>{m.id}</td>
               <td>{m.nazivFakulteta}</td>
+              <td>{m.nazivUniverziteta}</td>
               <td>{m.datumPocetka}</td>
               <td>{m.datumZavrsetka || "—"}</td>
               <td>{m.datumZavrsetka ? "Bivši" : "Aktivan"}</td>
