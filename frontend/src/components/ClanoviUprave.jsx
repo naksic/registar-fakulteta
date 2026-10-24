@@ -54,12 +54,21 @@ function ClanoviUprave({
     ucitajClanove();
   }, [mandatId]);
 
+  useEffect(() => {
+    if (dostupneFunkcije.length > 0 && !dostupneFunkcije.includes(novaFunkcija)) {
+      setNovaFunkcija(dostupneFunkcije[0]);
+    }
+  }, [clanovi]);
+
   const dozvoljenaLica = dozvoljenaLicaZaFunkciju(
     novaFunkcija,
     nastavnoOsoblje,
     administrativnoOsoblje,
     studenti,
   );
+
+  const zauzeteFunkcije = clanovi.map((c) => c.funkcija);
+  const dostupneFunkcije = funkcije.filter((f) => !zauzeteFunkcije.includes(f));
 
   const promeniFunkciju = (e) => {
     setNovaFunkcija(e.target.value);
@@ -103,6 +112,12 @@ function ClanoviUprave({
 
       {greska && <p className="text-danger">Greška: {greska}</p>}
 
+      {dostupneFunkcije.length === 0 ? (
+        <p className="text-muted">
+          Sve funkcije su već popunjene za ovaj mandat.
+        </p>
+      ) : (
+
       <form onSubmit={dodajClana} className="d-flex gap-2 mb-3 align-items-end">
         <div>
           <label className="form-label">Funkcija</label>
@@ -111,7 +126,7 @@ function ClanoviUprave({
             value={novaFunkcija}
             onChange={promeniFunkciju}
           >
-            {funkcije.map((f) => (
+            {dostupneFunkcije.map((f) => (
               <option key={f} value={f}>
                 {f}
               </option>
@@ -145,6 +160,7 @@ function ClanoviUprave({
           Dodaj člana
         </button>
       </form>
+      )}
 
       {ucitavanje ? (
         <p>Učitavanje...</p>
