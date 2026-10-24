@@ -28,12 +28,10 @@ function OrganizacioneJedinicePage() {
   }, []);
 
   const obrisiJedinicu = (id) => {
-    if (
-      !window.confirm(
-        "Da li si siguran da želiš da obrišeš ovu organizacionu jedinicu?",
-      )
-    )
+    if (!window.confirm("Da li si siguran da želiš da obrišeš ovu organizacionu jedinicu?",))
       return;
+
+    setGreska(null);
 
     organizacionaJedinicaApi
       .delete(id)
@@ -52,6 +50,7 @@ function OrganizacioneJedinicePage() {
   };
 
   const zatvoriFormu = () => {
+    setGreska(null);
     setPrikaziFormu(false);
     setJedinicaZaIzmenu(null);
   };

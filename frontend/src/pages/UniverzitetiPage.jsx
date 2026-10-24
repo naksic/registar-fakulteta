@@ -24,10 +24,10 @@ function UniverzitetiPage() {
   }, []);
 
   const obrisiUniverzitet = (id) => {
-    if (
-      !window.confirm("Da li si siguran da želiš da obrišeš ovaj univerzitet?")
-    )
+    if (!window.confirm("Da li si siguran da želiš da obrišeš ovaj univerzitet? \nUPOZORENJE: Ovo će obrisati i sve njegove fakultete i korisnike."))
       return;
+
+    setGreska(null);
 
     univerzitetApi
       .delete(id)
@@ -46,6 +46,7 @@ function UniverzitetiPage() {
   };
 
   const zatvoriFormu = () => {
+    setGreska(null);
     setPrikaziFormu(false);
     setUniverzitetZaIzmenu(null);
   };

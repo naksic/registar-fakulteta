@@ -78,10 +78,11 @@ function NastavnoOsobljeTab() {
   }, []);
 
   const obrisi = (id) => {
-    if (
-      !window.confirm("Da li si siguran da želiš da obrišeš ovog zaposlenog?")
-    )
+    if (!window.confirm("Da li si siguran da želiš da obrišeš ovog zaposlenog?") )
       return;
+
+    setGreska(null);
+
     nastavnoOsobljeApi
       .delete(id)
       .then(() => ucitaj())
@@ -112,6 +113,7 @@ function NastavnoOsobljeTab() {
           postojeciZaposleni={zaIzmenu}
           onSacuvaj={sacuvaj}
           onOtkazi={() => {
+            setGreska(null);
             setPrikaziFormu(false);
             setZaIzmenu(null);
           }}
@@ -120,6 +122,7 @@ function NastavnoOsobljeTab() {
         <button
           className="btn btn-primary mb-3"
           onClick={() => {
+            setGreska(null);
             setZaIzmenu(null);
             setPrikaziFormu(true);
           }}
@@ -193,10 +196,11 @@ function AdministrativnoOsobljeTab() {
   }, []);
 
   const obrisi = (id) => {
-    if (
-      !window.confirm("Da li si siguran da želiš da obrišeš ovog zaposlenog?")
-    )
+    if (!window.confirm("Da li si siguran da želiš da obrišeš ovog zaposlenog?"))
       return;
+
+    setGreska(null);
+
     administrativnoOsobljeApi
       .delete(id)
       .then(() => ucitaj())
@@ -227,6 +231,7 @@ function AdministrativnoOsobljeTab() {
           postojeciZaposleni={zaIzmenu}
           onSacuvaj={sacuvaj}
           onOtkazi={() => {
+            setGreska(null);
             setPrikaziFormu(false);
             setZaIzmenu(null);
           }}
@@ -235,6 +240,7 @@ function AdministrativnoOsobljeTab() {
         <button
           className="btn btn-primary mb-3"
           onClick={() => {
+            setGreska(null);
             setZaIzmenu(null);
             setPrikaziFormu(true);
           }}
@@ -308,8 +314,11 @@ function StudentiTab() {
   }, []);
 
   const obrisi = (id) => {
-    if (!window.confirm("Da li si siguran da želiš da obrišeš ovog studenta?"))
+    if(!window.confirm("Da li si siguran da želiš da obrišeš ovog studenta?"))
       return;
+
+    setGreska(null);
+
     studentApi
       .delete(id)
       .then(() => ucitaj())
@@ -340,6 +349,7 @@ function StudentiTab() {
           postojeciStudent={zaIzmenu}
           onSacuvaj={sacuvaj}
           onOtkazi={() => {
+            setGreska(null);
             setPrikaziFormu(false);
             setZaIzmenu(null);
           }}
@@ -348,6 +358,7 @@ function StudentiTab() {
         <button
           className="btn btn-primary mb-3"
           onClick={() => {
+            setGreska(null);
             setZaIzmenu(null);
             setPrikaziFormu(true);
           }}
@@ -406,10 +417,9 @@ function PretragaTab() {
   const [greska, setGreska] = useState(null);
   const [pretrazeno, setPretrazeno] = useState(false);
 
-  const pretraziLica = (e) => {
-    e.preventDefault();
+  const pretraziLica = (termin) => {
     liceApi
-      .search(pojamPretrage)
+      .search(termin)
       .then((response) => {
         setRezultati(response.data);
         setPretrazeno(true);
@@ -417,9 +427,24 @@ function PretragaTab() {
       .catch((error) => setGreska(error.message));
   };
 
+   useEffect(() => {
+    pretraziLica("");
+  }, []);
+
+  const posaljiPretragu = (e) => {
+    e.preventDefault();
+    pretraziLica(pojamPretrage);
+  };
+
+  const ponistiPretragu = () => {  
+    setPojamPretrage("");
+    setGreska(null);
+    pretraziLica("");
+  };
+
   return (
     <div>
-      <form onSubmit={pretraziLica} className="d-flex gap-2 mb-3">
+      <form onSubmit={posaljiPretragu} className="d-flex gap-2 mb-3">
         <input
           className="form-control"
           style={{ maxWidth: "300px" }}
@@ -429,6 +454,15 @@ function PretragaTab() {
         />
         <button type="submit" className="btn btn-outline-primary">
           Pretraži
+        </button>
+
+        <button
+          type="button"
+          className="btn btn-outline-secondary"
+          onClick={ponistiPretragu}
+          disabled={!pojamPretrage}
+        >
+          Poništi
         </button>
       </form>
 

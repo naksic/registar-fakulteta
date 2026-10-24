@@ -35,8 +35,10 @@ function FakultetiPage() {
   }, []);
 
   const obrisiFakultet = (id) => {
-    if (!window.confirm("Da li si siguran da želiš da obrišeš ovaj fakultet?"))
+    if (!window.confirm("Da li si siguran da želiš da obrišeš ovaj fakultet? \nUPOZORENJE: Ovo će obrisati i sve njegove organizacione jedinice i mandate uprave (sa članovima uprave)."))
       return;
+
+    setGreska(null);
 
     fakultetApi
       .delete(id)
@@ -55,6 +57,7 @@ function FakultetiPage() {
   };
 
   const zatvoriFormu = () => {
+    setGreska(null);
     setPrikaziFormu(false);
     setFakultetZaIzmenu(null);
   };
