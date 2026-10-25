@@ -31,4 +31,6 @@ public class OrganizacionaJedinicaDto {
     private Long fakultetId;
 
     private String nazivFakulteta;
+    
+    private String nazivUniverziteta;
 }

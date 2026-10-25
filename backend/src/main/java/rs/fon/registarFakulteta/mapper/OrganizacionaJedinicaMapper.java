@@ -21,6 +21,7 @@ public class OrganizacionaJedinicaMapper {
         dto.setNaziv(o.getNaziv());
         dto.setFakultetId(o.getFakultet().getId());
         dto.setNazivFakulteta(o.getFakultet().getNaziv());
+        dto.setNazivUniverziteta(o.getFakultet().getUniverzitet().getNaziv());
         return dto;
     }
 
