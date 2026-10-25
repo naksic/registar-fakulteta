@@ -22,6 +22,8 @@ import rs.fon.registarFakulteta.dto.FakultetDto;
 import rs.fon.registarFakulteta.service.FakultetService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  *
@@ -37,6 +39,11 @@ public class FakultetController {
     @GetMapping
     public ResponseEntity<List<FakultetDto>> getAll() {
         return ResponseEntity.ok(fakultetService.getAll());
+    }
+    
+    @GetMapping("/stranicenje")
+    public ResponseEntity<Page<FakultetDto>> getStranicu(Pageable pageable) {
+        return ResponseEntity.ok(fakultetService.getStranicu(pageable));
     }
 
     @GetMapping("/{id}")
@@ -65,14 +72,16 @@ public class FakultetController {
         fakultetService.delete(id);
         return ResponseEntity.noContent().build();
     }
+   
     
     @GetMapping("/pretraga")
-    public ResponseEntity<List<FakultetDto>> pretraga(
+    public ResponseEntity<Page<FakultetDto>> pretraga(
             @RequestParam(required = false) String naziv,
             @RequestParam(required = false) String skraceniNaziv,
             @RequestParam(required = false) Long univerzitetId,
-            @RequestParam(required = false) String status) {
-        return ResponseEntity.ok(fakultetService.pretraga(naziv, skraceniNaziv, univerzitetId, status));
+            @RequestParam(required = false) String status,
+            Pageable pageable) {
+        return ResponseEntity.ok(fakultetService.pretraga(naziv, skraceniNaziv, univerzitetId, status, pageable));
     }
     
     @GetMapping("/export/excel")

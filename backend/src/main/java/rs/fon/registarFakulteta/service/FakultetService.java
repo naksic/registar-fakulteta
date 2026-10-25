@@ -20,6 +20,9 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 /**
  *
@@ -39,6 +42,11 @@ public class FakultetService {
                 .stream()
                 .map(fakultetMapper::toDto)
                 .toList();
+    }
+    
+    @Transactional(readOnly = true)
+    public Page<FakultetDto> getStranicu(Pageable pageable) {
+        return fakultetRepository.findAll(pageable).map(fakultetMapper::toDto);
     }
 
     @Transactional(readOnly = true)
@@ -102,8 +110,8 @@ public class FakultetService {
     }
     
     @Transactional(readOnly = true)
-    public List<FakultetDto> pretraga(String naziv, String skraceniNaziv, Long univerzitetId, String status) {
-        return fakultetRepository.findAll()
+    public Page<FakultetDto> pretraga(String naziv, String skraceniNaziv, Long univerzitetId, String status, Pageable pageable) {
+        List<FakultetDto> filtrirano = fakultetRepository.findAll(pageable.getSort())
                 .stream()
                 .filter(f -> naziv == null || naziv.isBlank()
                         || f.getNaziv().toLowerCase().contains(naziv.toLowerCase()))
@@ -115,6 +123,15 @@ public class FakultetService {
                         || f.getStatus().equalsIgnoreCase(status))
                 .map(fakultetMapper::toDto)
                 .toList();
+
+        int pocetak = (int) pageable.getOffset();
+        int kraj = Math.min(pocetak + pageable.getPageSize(), filtrirano.size());
+
+        List<FakultetDto> stranica = pocetak >= filtrirano.size()
+                ? List.of()
+                : filtrirano.subList(pocetak, kraj);
+
+        return new PageImpl<>(stranica, pageable, filtrirano.size());
     }
     
     @Transactional(readOnly = true)
