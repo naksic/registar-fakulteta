@@ -3,6 +3,8 @@ import fakultetApi from "../api/fakultetApi";
 import univerzitetApi from "../api/univerzitetApi";
 import FakultetForma from "../components/FakultetForma";
 
+const VELICINA_STRANICE = 10;
+
 function FakultetiPage() {
   const [fakulteti, setFakulteti] = useState([]);
   const [univerziteti, setUniverziteti] = useState([]);
@@ -12,37 +14,90 @@ function FakultetiPage() {
   const [prikaziFormu, setPrikaziFormu] = useState(false);
   const [fakultetZaIzmenu, setFakultetZaIzmenu] = useState(null);
 
-
   const [filterNaziv, setFilterNaziv] = useState("");
   const [filterSkraceniNaziv, setFilterSkraceniNaziv] = useState("");
   const [filterUniverzitetId, setFilterUniverzitetId] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [pretragaAktivna, setPretragaAktivna] = useState(false);
 
-  const ucitajPodatke = () => {
+  const [stranica, setStranica] = useState(0);
+  const [ukupnoStranica, setUkupnoStranica] = useState(0);
+  const [ukupnoElemenata, setUkupnoElemenata] = useState(0);
+  const [sortSmer, setSortSmer] = useState(null);
+
+  useEffect(() => {
+    univerzitetApi
+      .getAll()
+      .then((response) => setUniverziteti(response.data))
+      .catch((error) => setGreska(error.message));
+  }, []);
+
+  const ucitajStranicuFakulteta = (stranicaZaUcitavanje) => {
     setUcitavanje(true);
-    Promise.all([fakultetApi.getAll(), univerzitetApi.getAll()])
-      .then(([fakultetiRes, univerzitetiRes]) => {
-        setFakulteti(fakultetiRes.data);
-        setUniverziteti(univerzitetiRes.data);
+      fakultetApi.getStranicu(stranicaZaUcitavanje, VELICINA_STRANICE, sortSmer ? `godinaOsnivanja,${sortSmer}` : undefined)
+      .then((response) => {
+        setFakulteti(response.data.content);
+        setUkupnoStranica(response.data.totalPages);
+        setUkupnoElemenata(response.data.totalElements);
+        setStranica(stranicaZaUcitavanje);
+      })
+      .catch((error) => setGreska(error.message))
+      .finally(() => setUcitavanje(false));
+  };
+
+  const izvrsiPretragu = (stranicaZaUcitavanje) => {
+    const kriterijumi = {};
+    if (filterNaziv.trim()) kriterijumi.naziv = filterNaziv.trim();
+    if (filterSkraceniNaziv.trim())
+      kriterijumi.skraceniNaziv = filterSkraceniNaziv.trim();
+    if (filterUniverzitetId) kriterijumi.univerzitetId = filterUniverzitetId;
+    if (filterStatus) kriterijumi.status = filterStatus;
+
+    setUcitavanje(true);
+    fakultetApi
+      .pretraga({
+        ...kriterijumi,
+        page: stranicaZaUcitavanje,
+        size: VELICINA_STRANICE,
+        sort: sortSmer ? `godinaOsnivanja,${sortSmer}` : undefined,
+      })
+      .then((response) => {
+        setFakulteti(response.data.content);
+        setUkupnoStranica(response.data.totalPages);
+        setUkupnoElemenata(response.data.totalElements);
+        setStranica(stranicaZaUcitavanje);
+        setPretragaAktivna(true);
       })
       .catch((error) => setGreska(error.message))
       .finally(() => setUcitavanje(false));
   };
 
   useEffect(() => {
-    ucitajPodatke();
-  }, []);
+    if (pretragaAktivna) {
+      izvrsiPretragu(0);
+    } else {
+      ucitajStranicuFakulteta(0);
+    }
+
+  }, [sortSmer]);
+
+  const osveziTrenutnuStranicu = () => {
+    if (pretragaAktivna) {
+      izvrsiPretragu(stranica);
+    } else {
+      ucitajStranicuFakulteta(stranica);
+    }
+  };
 
   const obrisiFakultet = (id) => {
-    if (!window.confirm("Da li si siguran da želiš da obrišeš ovaj fakultet? \nUPOZORENJE: Ovo će obrisati i sve njegove organizacione jedinice i mandate uprave (sa članovima uprave)."))
+    if (!window.confirm("Da li si siguran da želiš da obrišeš ovaj fakultet? \nUPOZORENJE: Ovo će obrisati i sve njegove organizacione jedinice i mandate uprave (sa članovima uprave).",))
       return;
 
     setGreska(null);
 
     fakultetApi
       .delete(id)
-      .then(() => ucitajPodatke())
+      .then(() => osveziTrenutnuStranicu())
       .catch((error) => setGreska(error.message));
   };
 
@@ -70,7 +125,7 @@ function FakultetiPage() {
     zahtev
       .then(() => {
         zatvoriFormu();
-        ucitajPodatke();
+        osveziTrenutnuStranicu();
       })
       .catch((error) => setGreska(error.message));
   };
@@ -78,27 +133,18 @@ function FakultetiPage() {
   const pretraziFakultete = (e) => {
     e.preventDefault();
 
-    const kriterijumi = {};
-    if (filterNaziv.trim()) kriterijumi.naziv = filterNaziv.trim();
-    if (filterSkraceniNaziv.trim())
-      kriterijumi.skraceniNaziv = filterSkraceniNaziv.trim();
-    if (filterUniverzitetId) kriterijumi.univerzitetId = filterUniverzitetId;
-    if (filterStatus) kriterijumi.status = filterStatus;
+    const imaFilter =
+      filterNaziv.trim() ||
+      filterSkraceniNaziv.trim() ||
+      filterUniverzitetId ||
+      filterStatus;
 
-    if (Object.keys(kriterijumi).length === 0) {
+    if (!imaFilter) {
       ocistiPretragu();
       return;
     }
 
-    setUcitavanje(true);
-    fakultetApi
-      .pretraga(kriterijumi)
-      .then((response) => {
-        setFakulteti(response.data);
-        setPretragaAktivna(true);
-      })
-      .catch((error) => setGreska(error.message))
-      .finally(() => setUcitavanje(false));
+    izvrsiPretragu(0);
   };
 
   const ocistiPretragu = () => {
@@ -107,7 +153,25 @@ function FakultetiPage() {
     setFilterUniverzitetId("");
     setFilterStatus("");
     setPretragaAktivna(false);
-    ucitajPodatke();
+    ucitajStranicuFakulteta(0);
+  };
+
+  const idiNaStranicu = (novaStranica) => {
+    if (novaStranica < 0 || novaStranica >= ukupnoStranica) return;
+
+    if (pretragaAktivna) {
+      izvrsiPretragu(novaStranica);
+    } else {
+      ucitajStranicuFakulteta(novaStranica);
+    }
+  };
+
+  const promeniSortiranje = () => {
+    setSortSmer((prethodni) => {
+      if (prethodni === null) return "asc";
+      if (prethodni === "asc") return "desc";
+      return null;
+    });
   };
 
   const preuzmiExcel = () => {
@@ -219,14 +283,6 @@ function FakultetiPage() {
         </div>
       )}
 
-      
-
-      {pretragaAktivna && (
-        <p className="text-muted">
-          Pronađeno fakulteta: {fakulteti.length}
-        </p>
-      )}
-
       <table className="table table-striped mt-3">
         <thead>
           <tr>
@@ -234,6 +290,15 @@ function FakultetiPage() {
             <th>Naziv</th>
             <th>Skraćeni naziv</th>
             <th>Univerzitet</th>
+            <th
+              onClick={promeniSortiranje}
+              style={{ cursor: "pointer", userSelect: "none" }}
+              title="Klikni za promenu smera sortiranja"
+            >
+              Godina osnivanja{" "}
+              {sortSmer === "asc" && "▲"}
+              {sortSmer === "desc" && "▼"}
+            </th>
             <th>Status</th>
             <th>Website</th>
             <th>Akcije</th>
@@ -246,6 +311,7 @@ function FakultetiPage() {
               <td>{f.naziv}</td>
               <td>{f.skraceniNaziv}</td>
               <td>{f.nazivUniverziteta}</td>
+              <td>{f.godinaOsnivanja}</td>
               <td>{f.status}</td>
               <td>{f.website}</td>
               <td>
@@ -266,13 +332,35 @@ function FakultetiPage() {
           ))}
           {fakulteti.length === 0 && (
             <tr>
-              <td colSpan="7" className="text-center text-muted">
+              <td colSpan="8" className="text-center text-muted">
                 Nema fakulteta koji zadovoljavaju zadate kriterijume.
               </td>
             </tr>
           )}
         </tbody>
       </table>
+
+      <div className="d-flex justify-content-between align-items-center mt-3">
+        <span className="text-muted">
+          Strana {stranica + 1} od {Math.max(ukupnoStranica, 1)} (ukupno fakulteta: {ukupnoElemenata})
+        </span>
+        <div>
+          <button
+            className="btn btn-outline-secondary btn-sm me-2"
+            onClick={() => idiNaStranicu(stranica - 1)}
+            disabled={stranica === 0}
+          >
+            Prethodna
+          </button>
+          <button
+            className="btn btn-outline-secondary btn-sm"
+            onClick={() => idiNaStranicu(stranica + 1)}
+            disabled={stranica + 1 >= ukupnoStranica}
+          >
+            Sledeća
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

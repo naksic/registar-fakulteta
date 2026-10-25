@@ -7,6 +7,7 @@ const fakultetApi = {
   update: (id, podaci) => axiosClient.put(`/fakulteti/${id}`, podaci),
   delete: (id) => axiosClient.delete(`/fakulteti/${id}`),
   pretraga: (kriterijumi) => axiosClient.get("/fakulteti/pretraga", { params: kriterijumi }),
+  getStranicu: (page, size, sort) => axiosClient.get("/fakulteti/stranicenje", { params: { page, size, sort } }),
   exportExcel: () => axiosClient.get("/fakulteti/export/excel", { responseType: "blob" }),
 };
 
