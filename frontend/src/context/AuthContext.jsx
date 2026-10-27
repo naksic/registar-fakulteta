@@ -2,11 +2,27 @@ import { createContext, useContext, useState } from "react";
 
 const AuthContext = createContext(null);
 
-export function AuthProvider({ children }) {
-  const [korisnik, setKorisnik] = useState(null);
+function ucitajKorisnikaIzMemorije() {
+  try {
+    const sacuvano = localStorage.getItem("korisnik");
+    return sacuvano ? JSON.parse(sacuvano) : null;
+  } catch {
+    return null;
+  }
+}
 
-  const prijaviKorisnika = (podaci) => setKorisnik(podaci);
-  const odjaviKorisnika = () => setKorisnik(null);
+export function AuthProvider({ children }) {
+  const [korisnik, setKorisnik] = useState(ucitajKorisnikaIzMemorije);
+
+  const prijaviKorisnika = (podaci) => {
+    localStorage.setItem("korisnik", JSON.stringify(podaci));
+    setKorisnik(podaci);
+  };
+
+  const odjaviKorisnika = () => {
+    localStorage.removeItem("korisnik");
+    setKorisnik(null);
+  };
 
   return (
     <AuthContext.Provider
