@@ -98,6 +98,7 @@ function OrganizacioneJedinicePage() {
             <th>ID</th>
             <th>Naziv</th>
             <th>Fakultet</th>
+            <th>Univerzitet</th>
             <th>Akcije</th>
           </tr>
         </thead>
@@ -107,6 +108,7 @@ function OrganizacioneJedinicePage() {
               <td>{j.id}</td>
               <td>{j.naziv}</td>
               <td>{j.nazivFakulteta}</td>
+              <td>{j.nazivUniverziteta}</td>
               <td>
                 <button
                   className="btn btn-outline-primary btn-sm me-2"
