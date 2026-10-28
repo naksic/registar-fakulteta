@@ -71,6 +71,7 @@ public class ClanUpraveService {
         
         validirajFunkcijuIZvanje(dto.getFunkcija(), lice);
         proveriJedinstvenostFunkcije(dto.getMandatUpraveId(), dto.getFunkcija(), null);
+        proveriDaLiLiceVecImaFunkcijuUMandatu(dto.getMandatUpraveId(), dto.getLiceId(), null);
         
         ClanUprave c = clanUpraveMapper.toEntity(dto);
         c.setId(null);
@@ -94,6 +95,7 @@ public class ClanUpraveService {
 
         validirajFunkcijuIZvanje(dto.getFunkcija(), lice);
         proveriJedinstvenostFunkcije(dto.getMandatUpraveId(), dto.getFunkcija(), id);
+        proveriDaLiLiceVecImaFunkcijuUMandatu(dto.getMandatUpraveId(), dto.getLiceId(), id);
         
         postojeci.setFunkcija(dto.getFunkcija());
         postojeci.setMandatUprave(mandat);
@@ -149,4 +151,17 @@ public class ClanUpraveService {
             );
         }
     }
+    
+    private void proveriDaLiLiceVecImaFunkcijuUMandatu(Long mandatUpraveId, Long liceId, Long idZaIzuzimanje) {
+        boolean vecPostoji = clanUpraveRepository.findAll().stream()
+                .filter(c -> c.getMandatUprave().getId().equals(mandatUpraveId))
+                .filter(c -> c.getLice().getId().equals(liceId))
+                .anyMatch(c -> idZaIzuzimanje == null || !c.getId().equals(idZaIzuzimanje));
+
+        if (vecPostoji) {
+            throw new BadRequestException("Ovo lice vec obavlja funkciju u okviru ovog mandata uprave. " +
+                "Jedno lice moze imati samo jednu funkciju po mandatu."
+            );
+        }
+}
 }
