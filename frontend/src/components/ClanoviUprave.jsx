@@ -60,15 +60,11 @@ function ClanoviUprave({
     }
   }, [clanovi]);
 
-  const dozvoljenaLica = dozvoljenaLicaZaFunkciju(
-    novaFunkcija,
-    nastavnoOsoblje,
-    administrativnoOsoblje,
-    studenti,
-  );
-
   const zauzeteFunkcije = clanovi.map((c) => c.funkcija);
   const dostupneFunkcije = funkcije.filter((f) => !zauzeteFunkcije.includes(f));
+  const zauzetaLica = clanovi.map((c) => c.liceId);
+
+  const dozvoljenaLica = dozvoljenaLicaZaFunkciju(novaFunkcija, nastavnoOsoblje, administrativnoOsoblje, studenti).filter((l) => !zauzetaLica.includes(l.id));
 
   const promeniFunkciju = (e) => {
     setNovaFunkcija(e.target.value);
